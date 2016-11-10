@@ -23,3 +23,12 @@
 (row-count (cl/matrix [0 1 2]))
 
 (column-count (cl/matrix [0 1 2]))
+
+(def a (cl/matrix [[0 1 2] [3 4 5]]))
+
+(cl/set a 1 1 0)
+
+(cl/map-indexed (fn [i j m] i) a)
+
+(defn square-mat []
+  )
