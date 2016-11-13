@@ -97,3 +97,28 @@ whose elements are all e"
 (M/== B A)
 
 (def C (M/+ A B))
+
+(defn mat-add
+
+  "Add two matrices"
+  ([A B]
+   (mapv #(mapv + %1 %2) A B))
+  ([A B & more]
+   (let [M (concat [A B] more)]
+     (reduce mat-add M))))
+
+(mat-add A B A)
+
+(concat [A B])
+
+(def A (matrix [1 2 3 4 5 6]))
+
+(def B (matrix [10 20 20 30 30 40]))
+
+(def C (matrix [11 12 13 14]))
+
+(def N 10)
+
+(pm (M/* A B))
+
+(scale B (rand-int 10))
