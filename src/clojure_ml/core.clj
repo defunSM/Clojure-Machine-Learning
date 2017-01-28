@@ -1,5 +1,9 @@
 (ns clojure-ml.core
-  (:use clojure.core.matrix)
+  (:use clojure.core.matrix
+        [incanter.charts :only [xy-plot add-points scatter-plot histogram]]
+        [incanter.core :only [view sel to-matrix]]
+        [incanter.stats :only [linear-model sample-normal]]
+        [incanter.datasets :only [get-dataset]])
   (:require [clatrix.core :as cl]
             [clojure.core.matrix.operators :as M]))
 
@@ -121,4 +125,126 @@ whose elements are all e"
 
 (pm (M/* A B))
 
-(scale B (rand-int 10))
+(scale A (rand-int 10))
+
+(def A (cl/matrix [[-2 2 3] [-1 1 3] [2 0 -1]]))
+
+(det A)
+
+(defn lmatrix [n]
+  (compute-matrix :clatrix [n (+ n 2)]
+                  (fn [i j] ({0 -1, 1 2, 2 -1} (- j i) 0))))
+
+(pm (lmatrix 4))
+
+(defn problem
+  "Return the map of a problem setup for a given matrix size,
+   number of observed values and regularization parameter."
+  [n n-observed lambda]
+  (let [i (shuffle (range n))]
+    {:L (M/* (lmatrix n) lambda)
+     :observed (take n-observed i)
+     :hidden (drop n-observed i)
+     :observed-values (matrix :clatrix
+                              (repeatedly n-observed rand))}))
+
+(defn solve
+  "Return a map containing the approximated value y of each
+   hidden point x."
+  [{:keys [L observed hidden observed-values] :as problem}]
+  (let [nc (column-count L)
+        nr (row-count L)
+        L1 (cl/get L (range nr) hidden)
+        L2 (cl/get L (range nr) observed)
+        l11 (M/* (transpose L1) L1)
+        l12 (M/* (transpose L1) L2)]
+    (assoc problem :hidden-values
+           (M/* -1 (inverse l11) l12 observed-values))))
+
+(defn plot-points
+  [s]
+  (let [X (concat (:hidden s) (:observed s))
+        Y (concat (:hidden-values s) (:observed-values s))]
+    (view
+     (add-points
+      (xy-plot X Y) (:observed s) (:observed-values s)))))
+
+(defn plot-rand-sample []
+  (plot-points (solve (problem 150 10 30))))
+
+(plot-rand-sample)
+
+(def X (cl/matrix [8.401 14.475 13.396 12.127 5.044
+                   8.339 15.692 17.108 9.253 12.029]))
+
+(def Y (cl/matrix [-1.57 2.32 0.424 0.814 -2.3
+                   0.01 1.954 2.296 -0.635 0.328]))
+
+(def linear-samp-scatter
+  (scatter-plot X Y))
+
+(defn plot-scatter []
+  (view linear-samp-scatter))
+
+(plot-scatter)
+
+(def samp-linear-model
+  (linear-model Y X))
+
+(defn plot-model []
+  (view (add-points linear-samp-scatter
+                    X (:fitted samp-linear-model))))
+
+(plot-model)
+
+(:coefs samp-linear-model)
+
+(:residuals samp-linear-model)
+
+(map (fn [x] (* x x)) (:residuals samp-linear-model))
+
+(reduce + (map (fn [x] (* x x)) (cl/matrix (:residuals samp-linear-model))))
+
+(:sse samp-linear-model)
+
+(view (histogram (sample-normal 1000 :mean 5) :width 700 :height 700))
+
+(sample-normal 50 :mean 5)
+
+(:r-square samp-linear-model)
+
+(def gradient-descent-precision 0.001)
+
+(defn gradient-descent []
+  [F' x-start step]
+  (loop [x-old x-start]
+    (let [x-new (- x-old
+                   (* step (F' x-old)))
+          dx (- x-new x-old)]
+      (if (< dx gradient-descent-precision)
+        x-new
+        (recur x-new)))))
+
+(def iris
+  (to-matrix (get-dataset :iris)))
+
+(def X (sel iris :cols (range 1 5)))
+(def Y (sel iris :cols 0))
+
+(def iris-linear-model
+  (linear-model Y X))
+
+(:fitted iris-linear-model)
+
+(defn plot-iris-linear-model []
+  (let [x (range -100 100)
+        y (:fitted iris-linear-model)]
+    (view (xy-plot x y :x-label "X" :y-label "Y"))))
+
+(plot-iris-linear-model)
+
+(= (count (:coefs iris-linear-model))
+   (+ 1 (column-count X)))
+
+(count (:coefs iris-linear-model))
+;; => 5
