@@ -248,3 +248,13 @@ whose elements are all e"
 
 (count (:coefs iris-linear-model))
 ;; => 5
+
+(defn dist [x y z i j k]
+  (let [d1 (- i x)
+        d2 (- j y)
+        d3 (- k z)]
+;;    (sqrt (+ (pow d1 2) (pow d2 2) (pow d3 2)))
+    (sqrt (reduce + (map (fn [x] (pow x 2)) [d1 d2 d3])))
+    ))
+
+(dist 2 18 19 -1 0 1)
