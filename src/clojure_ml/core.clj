@@ -1,7 +1,7 @@
 (ns clojure-ml.core
   (:use clojure.core.matrix
         [incanter.charts :only [xy-plot add-points scatter-plot histogram]]
-        [incanter.core :only [view sel to-matrix]]
+        [incanter.core :only [view sel to-matrix bind-columns]]
         [incanter.stats :only [linear-model sample-normal]]
         [incanter.datasets :only [get-dataset]])
   (:require [clatrix.core :as cl]
@@ -253,8 +253,147 @@ whose elements are all e"
   (let [d1 (- i x)
         d2 (- j y)
         d3 (- k z)]
-;;    (sqrt (+ (pow d1 2) (pow d2 2) (pow d3 2)))
-    (sqrt (reduce + (map (fn [x] (pow x 2)) [d1 d2 d3])))
+    (sqrt (+ (pow d1 2) (pow d2 2) (pow d3 2)))
+;;    (sqrt (reduce + (map (fn [x] (pow x 2)) [d1 d2 d3])))
     ))
 
-(dist 2 18 19 -1 0 1)
+(dist 1 4 7 3 2 9)
+
+(defn linear-model-ols
+  [MX MY]
+  (let [X (bind-columns (repeat (row-count MX) 1) MX)
+        Xt (cl/matrix (transpose X))
+        Xt-X (cl/* Xt X)]
+    (cl/* (inverse Xt-X) Xt MY)))
+
+(def ols-linear-model
+  (linear-model-ols X Y))
+
+(def ols-linear-model-coefs
+  (cl/as-vec ols-linear-model))
+
+(cl/as-vec (ols-linear-model X Y))
+
+
+
+(+ (/ ne 1.6e-19) 5.3e16)
+;; => 3.12500049375E14
+
+(def np 5.3e16)
+(def ne (/ (- (/ 7.9e-12 1.6e-19) np) -1))
+
+
+(- np ne)
+;; => 4.9375E7
+
+(/ (- np ne) np)
+;; => 9.316037735849057E-10
+
+(def charge 35e-9)
+(def d1 21e-2)
+(def d2 12e-2)
+(def degree (atan (/ d2 d1)))
+
+(def f1 (force charge charge d2))
+(def f2 (* (force charge charge (sqrt (+ (pow d1 2) (pow d2 2))))
+           (sin degree)))
+
+(+ (- 0 f1) f2)
+
+
+
+
+
+(to-degrees degree)
+
+(defn force [q1 q2 dis]
+  (/ (* 9e9 q1 q2) (pow dis 2)))
+
+(force 0.26e-3 9e-3 9)
+
+(* (sin (atan (/ 9 5))) (force 0.26e-3 9e-3 (sqrt (+ (pow 5 2) (pow 9 2)))))
+
+(def topf (* (sin (atan (/ 9 5))) (force 0.26e-3 9e-3 (sqrt (+ (pow 5 2) (pow 9 2))))))
+
+(def botf (* (sin (atan (/ 9 2.5))) (force 0.26e-3 9e-3 (sqrt (+ (pow 2.5 2) (pow 9 2))))))
+
+
+(force charge charge d1)
+
+(+ (* (cos degree)
+      (force charge charge (sqrt (+ (pow d1 2) (pow d2 2)))))
+   (force charge charge d1))
+;; => 4.1363043832345583E-4
+
+
+
+(/ 9.8 9e9)
+
+(* (/ (* 110 32.1 6.022e23) 1e12) 1.6e-19)
+
+(* (/ (* (/ 110 32.1) 6.022e23) 1e12) 1.6e-19)
+;; => 3.3017819314641745E-7
+
+(atan )
+
+(def f1 (force charge charge d2)) ;; top left
+
+(def f2 (force charge charge d1)) ;; bottom right
+
+(def f3 (force charge charge (sqrt (+ (pow d1 2)
+                                      (pow d2 2))))) ;; top right
+
+(* (cos degree) f3);; => 9.350310761340328E-5
+(* (sin degree) f3);; => 1.636304383234558E-4
+
+(def horizontal (- f2 (* (sin degree) f3)))
+
+horizontal ;; => 1.5649689238659677E-4
+
+(* 4.558276496e-5 (sin (to-radians 60.2551187)))
+
+(defn predict [coefs x]
+  {:pre [(= (count coefs)
+            (+ 1 (count x)))]}
+  (let [x-with-1 (conj x 1)
+        products (map * coefs x-with-1)]
+    (reduce + products)))
+
+(def xf (map inc))
+(transduce xf conj (range 5))
+
+(defn make-sea-bass []
+  #{:sea-bass
+    (if (< (rand) 0.2) :fat :thin)
+    (if (< (rand) 0.7) :long :short)
+    (if (< (rand) 0.8) :light :dark)})
+
+(defn make-salmon []
+  #{:salmon
+    (if (< (rand) 0.8) :fat :thin)
+    (if (< (rand) 0.5) :long :short)
+    (if (< (rand) 0.3) :light :dark)})
+
+(defn make-sample-fish []
+  (if (< (rand) 0.3) (make-sea-bass) (make-salmon)))
+
+(def fish-training-data
+  (for [i (range 10000)] (make-sample-fish)))
+
+(defn probability
+  [attribute & {:keys
+                [category prior-positive prior-negative data]
+                :or {category nil
+                     data fish-training-data}}]
+  (let [by-category (if category
+                      (filter category data)
+                      data)
+        positive (count (filter attribute by-category))
+        negative (- (count by-category) positive)
+        total (+ positive negative)]
+    (/ positive total)))
+
+(probability :dark :category :salmon)
+(probability :dark :category :sea-bass)
+(probability :light :category :salmon)
+(probability :light :category :sea-bass)
