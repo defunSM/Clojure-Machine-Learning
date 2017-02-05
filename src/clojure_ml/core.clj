@@ -3,7 +3,9 @@
         [incanter.charts :only [xy-plot add-points scatter-plot histogram]]
         [incanter.core :only [view sel to-matrix bind-columns]]
         [incanter.stats :only [linear-model sample-normal]]
-        [incanter.datasets :only [get-dataset]])
+        [incanter.datasets :only [get-dataset]]
+        clj-ml.classifiers
+        clj-ml.data)
   (:require [clatrix.core :as cl]
             [clojure.core.matrix.operators :as M]))
 
@@ -300,10 +302,6 @@ whose elements are all e"
 
 (+ (- 0 f1) f2)
 
-
-
-
-
 (to-degrees degree)
 
 (defn force [q1 q2 dis]
@@ -391,9 +389,126 @@ horizontal ;; => 1.5649689238659677E-4
         positive (count (filter attribute by-category))
         negative (- (count by-category) positive)
         total (+ positive negative)]
-    (/ positive total)))
+    (float (/ positive total))))
 
 (probability :dark :category :salmon)
+(probability :fat :category :salmon)
+
+(* (probability :fat :category :salmon) (probability :dark :category :salmon))
+(* (probability :light :category :sea-bass) (probability :thin :category :sea-bass))
 (probability :dark :category :sea-bass)
 (probability :light :category :salmon)
 (probability :light :category :sea-bass)
+
+(defn evidence-of-salmon [& attrs]
+  (let [attr-probs (map #(probability % :category :salmon) attrs)
+        class-and-attr-prob (conj attr-probs
+                                  (probability :salmon))]
+    (apply * class-and-attr-prob)))
+
+(defn evidence-of-sea-bass [& attrs]
+  (let [attr-probs (map #(probability % :category :sea-bass) attrs)
+        class-and-attr-prob (conj attr-probs
+                                  (probability :sea-bass))]
+    (apply * class-and-attr-prob)))
+
+(defn evidence-of-fish [& attrs]
+  (let [attr-probs-of-salmon (map #(probability % :category :salmon) attrs)
+        attr-probs-of-sea-bass (map #(probability % :category :sea-bass) attrs)
+        class-probs-of-salmon (conj attr-probs-of-salmon (probability :salmon))
+        class-probs-of-sea-bass (conj attr-probs-of-sea-bass (probability :sea-bass))
+        salmon-prob (apply * class-probs-of-salmon)
+        sea-bass-prob (apply * class-probs-of-sea-bass)
+        total-prob (+ salmon-prob sea-bass-prob)
+        norm-salmon-prob (* 100 (/ salmon-prob total-prob))
+        norm-sea-bass-prob (* 100 (/ sea-bass-prob total-prob))]
+    (if (< norm-salmon-prob norm-sea-bass-prob)
+      {:probability norm-sea-bass-prob :fish :sea-bass :evidence sea-bass-prob}
+      {:probability norm-salmon-prob :fish :salmon :evidence salmon-prob})))
+
+(evidence-of-fish :thin)
+
+(evidence-of-sea-bass :dark :long :fat)
+;; => 0.0080733078260939
+(evidence-of-salmon :dark :long :fat)
+;; => 0.19817920769847883
+
+
+
+;; Vector stuff
+
+(defn addvec [op x y]
+  (map (fn [x y] (op x y)) x y))
+
+(defn magnitude [[a b c]]
+  (Math/sqrt (+ (Math/pow a 2) (Math/pow b 2) (Math/pow c 2))))
+
+(defn unitvector [[a b c]]
+  (let [total (Math/sqrt (+ (Math/pow a 2)
+                            (Math/pow b 2)
+                            (Math/pow c 2)))
+        a1 (/ a total)
+        b1 (/ b total)
+        c1 (/ c total)]
+    [a1 b1 c1]))
+
+
+
+(def v1 [-1 -4 -4])
+(def v2 [-2 -3 5])
+
+(def arrays [[-8 10 8]
+             [-8 6 8]
+             [0 0 -20]
+             [4 -16 20]
+             [24 -30 -24]
+             [9 9 0]])
+
+(def arrays2 [[-12 16 -16]
+              [5 -10 -15]
+              [-15 -6 6]
+              [-48 -60 -24]
+              [-16 -20 -8]
+              [6 -12 -3]])
+
+(def u [3 1 -1])
+(def v [0 -4 -1])
+(def w [3 0 -2])
+
+(magnitude (scale (/ 1 (magnitude w)) w)) ;; always makes 1
+
+(def setofa (map unitvector arrays))
+;; => ([-0.5298129428260175 0.6622661785325219 0.5298129428260175]
+;; [-0.6246950475544243 0.4685212856658182 0.6246950475544243]
+;; [0.0 0.0 -1.0]
+;; [0.1543033499620919 -0.6172133998483676 0.7715167498104595]
+;; [0.5298129428260175 -0.6622661785325219 -0.5298129428260175]
+;; [0.7071067811865476 0.7071067811865476 0.0]
+(while (> x 5)
+  ())
+
+(map unitvector arrays2)
+;; => ([-0.4685212856658182 0.6246950475544243 -0.6246950475544243]
+;; [0.2672612419124244 -0.5345224838248488 -0.8017837257372731]
+;; [-0.8703882797784892 -0.3481553119113957 0.3481553119113957]
+;; [-0.5962847939999439 -0.7453559924999299 -0.29814239699997197]
+;; [-0.5962847939999439 -0.7453559924999299 -0.29814239699997197] [0.4364357804719847 -0.8728715609439694 -0.21821789023599236])
+
+(def u [2 5 -4])
+(def v [4 1 4])
+
+(scale 7 u)
+(scale (/ -1 3) v)
+(addvec - (scale 5 u) (scale 6 v))
+(addvec - v u)
+
+(magnitude v1)
+
+(addvec + [-1 -4 -4] [-2 -3 5])
+;; => (-3 -7 1)
+(addvec - [-1 -4 -4] [-2 -3 5])
+;; => (1 -1 -9)
+(scale 2 v1)
+;; => (-2 -8 -8)
+(addvec + (scale 3 v1) (scale 4 v2))
+;; => (-11 -24 8)

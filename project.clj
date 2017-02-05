@@ -6,4 +6,5 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [net.mikera/core.matrix "0.20.0"]
                  [incanter "1.5.4"]
-                 [clatrix "0.3.0"]])
+                 [clatrix "0.3.0"]
+                 [cc.artifice/clj-ml "0.4.0"]])
