@@ -433,7 +433,48 @@ horizontal ;; => 1.5649689238659677E-4
 (evidence-of-salmon :dark :long :fat)
 ;; => 0.19817920769847883
 
+(defn rand-in-range [min max]
+  (let [len (- max min)
+        rand-len (rand-int len)]
+    (+ min rand-len)))
 
+(defn make-sea-bass []
+  (vector :sea-bass
+        (rand-in-range 6 10)    ;; Length
+        (rand-in-range 0 5)     ;; Width
+        (rand-in-range 4 10)))  ;; Lightness
+
+(defn make-salmon []
+  (vector :salmon
+          (rand-in-range 0 7)
+          (rand-in-range 4 10)
+          (rand-in-range 0 6)))
+
+(defn make-sample-fish []
+  (if (< (rand) 0.3) (make-sea-bass) (make-salmon)))
+
+(def fish-training-data
+  (for [i (range 10000)] (make-sample-fish)))
+
+(def bayes-classifier (make-classifier :bayes :naive))
+
+(def fish-template
+  [{:category [:salmon :sea-bass]}
+   :length :width :lightness])
+
+(def fish-data-set
+  (make-dataset "fish" fish-template fish-training-data))
+
+(defn train-bayes-classifier []
+  (dataset-set-class fish-data-set 0)
+  (classifier-train bayes-classifier fish-data-set))
+
+(train-bayes-classifier)
+
+(def sample-fish
+  (make-instance fish-data-set [:salmon 5 3 1]))
+
+(classifier-classify bayes-classifier sample-fish)
 
 ;; Vector stuff
 
