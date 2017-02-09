@@ -4,10 +4,102 @@
         [incanter.core :only [view sel to-matrix bind-columns]]
         [incanter.stats :only [linear-model sample-normal]]
         [incanter.datasets :only [get-dataset]]
+        [clojure.pprint :only [pprint]]
         clj-ml.classifiers
         clj-ml.data)
   (:require [clatrix.core :as cl]
             [clojure.core.matrix.operators :as M]))
+
+
+(defn magnitude [[a b c]]
+  (Math/sqrt (+ (Math/pow a 2) (Math/pow b 2) (Math/pow c 2))))
+
+(magnitude [1 1 1])
+
+(defn compv [b a]
+  (/  (dot a b) (magnitude a)))
+
+(def a [-1 1 2])
+(def b [-3 5 10])
+
+(compv b a)
+
+(defn projv [b a]
+  (scale (/ (dot a b) (Math/pow (magnitude a) 2)) a))
+
+(dot [1 2 -1] [-8 -16 8])
+(cross [1 2 -1] [-8 -16 8])
+(cross [3 9 14] [9 -3 0])
+(dot [3 9 14] [9 -3 0])
+
+(dot [8 16 -24] [-24 16 8])
+(cross [8 16 -24] [-24 16 8])
+
+(* 2 8 (cos (/ 3.147 4)))
+
+(acos (/ (dot [1 -1 1] [1 1 -1]) (* (magnitude [1 -1 1]) (magnitude [1 1 -1]))))
+
+
+;; => 9.0
+
+(def f [5 4 5])
+(def r [-3 -6 6])
+
+(* (/ (dot f r) (* (magnitude f) (magnitude r))) (magnitude f) 9)
+
+(* 9 (dot f r))
+
+(* 9 (magnitude f))
+
+(magnitude (cross r f))
+
+
+
+(projv b a)
+
+
+(dot [0 4 -5] [4 0 -3])
+
+(def u [-5 4 1])
+(def w [-3 5 -2])
+(def v [-2, 2, 3])
+
+(dot u w)
+
+(def u [6 2 -3])
+
+(dot u [1 -3 0])
+
+(magnitude [8 -1 -4])
+;; => 9.0
+
+(magnitude [2 1 -9])
+;; => 9.273618495495704
+
+(acos (/ (dot [8 -1 -4] [2 1 -9]) (* (magnitude [8 -1 -4]) (magnitude [2 1 -9]))))
+
+(def a [3 0 -4])
+(def b [1 1 -4])
+(def c [4 7 3])
+
+(dot a b)
+(dot a c)
+(dot b c)
+
+(defn compv [b a]
+  (/ (magnitude a) (dot b a)))
+
+(compv [-1 0 4] [1 2 3]) ;; b first a second
+;; => 0.34015067152490375
+(/ 11 (sqrt 14))
+
+(compv [-1 1 2] [-3 5 10])
+
+(scale (dot u v) u)
+
+(dot (scale (dot w w) u) u)
+
+(+ (dot u v) (dot v w))
 
 (matrix [[0 1 2] [3 4 5]])
 
@@ -475,6 +567,27 @@ horizontal ;; => 1.5649689238659677E-4
   (make-instance fish-data-set [:salmon 5 3 1]))
 
 (classifier-classify bayes-classifier sample-fish)
+
+(def K1-classifier (make-classifier :lazy :ibk {:num-neighbors 10}))
+
+(defn train-K1-classifier []
+  (dataset-set-class fish-data-set 0)
+  (classifier-train K1-classifier fish-data-set))
+
+(train-K1-classifier)
+
+(classifier-classify K1-classifier sample-fish)
+
+(def DT-classifier (make-classifier :decision-tree :c45))
+
+(defn train-DT-classifier []
+  (dataset-set-class fish-data-set 0)
+  (classifier-train DT-classifier fish-data-set))
+
+(println (train-DT-classifier))
+
+(classifier-classify DT-classifier sample-fish)
+
 
 ;; Vector stuff
 
