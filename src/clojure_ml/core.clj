@@ -11,6 +11,24 @@
             [clojure.core.matrix.operators :as M]))
 
 
+(def a [1 -1 -4])
+(def b [-2 9 -9])
+
+
+(dot [])
+(dot [5 -4 1] [4 5 0])
+(cross (calcvec a b) [-5 -2 1])
+
+
+
+(def ac [-5 -2 -1])
+
+
+
+
+
+(/ (- (dot [-2 -2 -3] [1 -1 4]) 6) (magnitude [1 -1 4]))
+
 (defn magnitude [[a b c]]
   (Math/sqrt (+ (Math/pow a 2) (Math/pow b 2) (Math/pow c 2))))
 
@@ -19,8 +37,77 @@
 (defn compv [b a]
   (/  (dot a b) (magnitude a)))
 
-(def a [-1 1 2])
-(def b [-3 5 10])
+
+(defn calcvec [[a b c] [d e f]]
+  (let [i (- d a)
+        j (- e b)
+        k (- f c)]
+    [i j k]))
+
+(def a [3 -2 3])
+(def b [6 3 3])
+(def c [7 -5 6])
+(def d [6 -4 4])
+
+(def ab (calcvec a b))
+(def bc (calcvec b c))
+(def cd (calcvec c d))
+(def da (calcvec d a))
+
+(/ (dot ab (cross bc cd)) 6)
+
+(magnitude )
+
+(dot [-1 5 3] [5 -25 -16])
+
+
+
+(dot a (cross b c))
+
+
+(magnitude (cross ab bc))
+
+(cross [10 7 1] [1 2 1])
+
+(cross pq qr)
+
+(cross [2 -1 1] [-3 -1 -1])
+
+(* 0.5 (magnitude (cross pq qr)))
+
+
+
+(* 0.5 (magnitude (cross ab bc)))
+
+(* 0.5 (magnitude (cross ab da)))
+
+(def v [-3 1 5])
+
+(def i [1 0 0])
+(def j [0 1 0])
+(def k [0 0 1])
+
+(def u [3 0 5])
+(def v [-3 4 -5])
+
+(cross u v)
+
+(cross (scale 3 i) (M/+ i j))
+
+(cross (M/+ k j) (M/- k j))
+
+(magnitude v)
+
+(tan (acos (/ (magnitude v) 6)))
+
+(dot c (cross a b))
+
+
+(dot a (cross a b))
+
+(unitvector a)
+
+(scale (/ 1 (magnitude (cross a b))) (cross a b))
 
 (compv b a)
 
@@ -674,3 +761,13 @@ horizontal ;; => 1.5649689238659677E-4
 (* (- (/ 1 (Math/sqrt (+ (Math/pow (/ 0.087 0.15) 2) 1)))
       (/ 1 (Math/sqrt (+ (Math/pow (/ 0.23 0.15) 2) 1))))
    (* 2 3.14 9e9 2.1e-4))
+
+(Math/pow 12.5e-2 3)
+(Math/pow 6e-2 3)
+
+(Math/pow 12.5e-2 3)
+(Math/pow 6e-2 3)
+
+(/ (- (Math/pow 12.5e-2 3) (Math/pow 6e-2 3)) 3)
+
+(* 6e-3)
