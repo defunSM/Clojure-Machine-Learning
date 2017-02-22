@@ -11,14 +11,27 @@
             [clojure.core.matrix.operators :as M]))
 
 
-(def a [1 -1 -4])
-(def b [-2 9 -9])
+(def a [-2 -1 -2])
+(def b [-5 4 -4])
+(def c [-5 5 -2])
+
+(cross (calcvec c a) (calcvec a b))
+
+
+
+
+(cross (calcvec [0 0 0] [4 3 4]) (calcvec [4 3 4] [-3 3 -5]))
+
+
+
 
 (dot [5 -4 1] [4 5 0])
 (cross (calcvec a b) [-5 -2 1])
 
 
+(cross (calcvec [0 0 0] [5 4 2]) (calcvec [0 0 0] [6 -1 1]))
 
+(dot [5 4 2] [6 -1 1])
 (def ac [-5 -2 -1])
 
 y
