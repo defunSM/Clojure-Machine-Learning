@@ -17,6 +17,29 @@
 
 (cross (calcvec c a) (calcvec a b))
 
+(def k 9e9)
+(def q 35e-9)
+(def a 66e-2)
+(def b 19e-2)
+(def m 4e-3)
+
+(def electric-potential (+ (* (/ (* k q q) a) 2) (/ (* k q q) b)))
+
+(Math/sqrt (/ (* 2 electric-potential) (* 3 m)))
+
+(def d 1.6e-3)
+(def E 26)
+(def m 9.1e-31)
+(def q 1.6e-19)
+
+(def potential-energy (* (/ (Math/pow (/ d 2) 2) 2) q E))
+
+(def pot (* q E d))
+
+(Math/sqrt (/ (* 2 pot) m))
+
+(Math/sqrt (/ (* 2 potential-energy) m))
+
 
 
 
